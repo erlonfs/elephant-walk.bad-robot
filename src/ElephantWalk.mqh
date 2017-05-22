@@ -15,7 +15,6 @@ class ElephantWalk : public Base
    private:
    
    	MqlRates _rates[];
-   	ENUM_TIMEFRAMES _period;   
    	
    	double _high;
 	   double _low;
@@ -49,7 +48,12 @@ class ElephantWalk : public Base
 	      _high = _rates[1].high;
 	      _low = _rates[1].low;
 	      
-	      return true;
+	      if(_high - _low  >= 50)
+	      {
+	         return true;
+	      }
+	      
+	      return false;
 	   
 	   }
    
@@ -99,5 +103,10 @@ class ElephantWalk : public Base
    		Base::ShowInfo();
    		
    	};
+   	
+      void ExecuteOnTrade(){
+         Base::ExecuteOnTradeBase();
+      }
+   	
 };
 
