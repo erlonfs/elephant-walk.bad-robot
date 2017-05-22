@@ -18,6 +18,11 @@ class ElephantWalk : public Base
    	
    	double _high;
 	   double _low;
+	   
+	   double _sizeOfBar;
+	   
+	   bool _waitBuy;
+	   bool _waitSell;
    	
    	bool GetBuffers() {
 
@@ -29,7 +34,7 @@ class ElephantWalk : public Base
    		ArraySetAsSeries(_rates, true);
    		ArrayFree(_rates); 
    
-   		int copiedRates = CopyRates(GetSymbol(), GetPeriod(), 0, 3, _rates);
+   		int copiedRates = CopyRates(GetSymbol(), GetPeriod(), 0, 2, _rates);
    
    		return copiedRates > 0;
 
@@ -48,10 +53,13 @@ class ElephantWalk : public Base
 	      _high = _rates[1].high;
 	      _low = _rates[1].low;
 	      
-	      if(_high - _low  >= 50)
+	      if(_high - _low  >= _sizeOfBar)
 	      {
 	         return true;
 	      }
+	      
+	      Base::SetInfo("TAM BARRA "+ (string)_sizeOfBar);
+   		Base::ShowInfo();
 	      
 	      return false;
 	   
@@ -70,43 +78,47 @@ class ElephantWalk : public Base
       		
    		if(GetBuffers()){
    		   
-   		   if(!FindElephant()){
-   		      return;
-   		   }
+   		   if(_waitBuy || _waitSell || FindElephant()){
+
+      		   if(_waitBuy || IsCandlePositive(_rates[1])){
+      		      		   
+      		      double _entrada = _high + GetSpread();
+         			double _auxStopGain = NormalizeDouble((_entrada + GetStopGain()), _Digits);
+         			double _auxStopLoss = NormalizeDouble((_entrada - GetStopLoss()), _Digits);
+              
+         			if (GetPrice().last >= _entrada && !HasPositionOpen()) {         
+         				Buy(_entrada, _auxStopLoss, _auxStopGain, getRobotName());  
+         				_waitBuy = false;          
+         			}        		   
+         			
+      		   }
+      		   
+      		   if(_waitSell || IsCandleNegative(_rates[1])){
+      		   
+      		      double _entrada = _low - GetSpread();
+         			double _auxStopGain = NormalizeDouble((_entrada - GetStopGain()), _Digits);
+         			double _auxStopLoss = NormalizeDouble((_entrada + GetStopLoss()), _Digits);
+              
+         			if (GetPrice().last <= _entrada && !HasPositionOpen()) {         
+         				Sell(_entrada, _auxStopLoss, _auxStopGain, getRobotName());     
+         				_waitSell = false;       
+         			}
+         			
+      		   }
+      		  
+            }
    		   
-   		   if(IsCandlePositive(_rates[1])){
-   		      		   
-   		      double _entrada = _high + GetSpread();
-      			double _auxStopGain = NormalizeDouble((_entrada + GetStopGain()), _Digits);
-      			double _auxStopLoss = NormalizeDouble((_entrada - GetStopLoss()), _Digits);
-           
-      			if (GetPrice().ask >= _entrada && !HasPositionOpen()) {         
-      				Buy(_entrada, _auxStopLoss, _auxStopGain, getRobotName());            
-      			}        		   
-      			
-   		   }
-   		   
-   		   if(IsCandleNegative(_rates[1])){
-   		   
-   		      double _entrada = _low - GetSpread();
-      			double _auxStopGain = NormalizeDouble((_entrada - GetStopGain()), _Digits);
-      			double _auxStopLoss = NormalizeDouble((_entrada + GetStopLoss()), _Digits);
-           
-      			if (GetPrice().bid <= _entrada && !HasPositionOpen()) {         
-      				Sell(_entrada, _auxStopLoss, _auxStopGain, getRobotName());            
-      			}
-      			
-   		   }
-   		   
-   		}
-   		   		
-   		Base::ShowInfo();
+   		}   	
    		
    	};
    	
       void ExecuteOnTrade(){
          Base::ExecuteOnTradeBase();
       }
+      
+      void SetSizeOfBar(double value){
+         _sizeOfBar = value;
+      }     
    	
 };
 
