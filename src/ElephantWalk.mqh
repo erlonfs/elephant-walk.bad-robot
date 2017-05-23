@@ -14,22 +14,16 @@ class ElephantWalk : public Base
 {
    private:
    
-   	MqlRates _rates[];
-   	
+   	MqlRates _rates[];   	
    	double _high;
-	   double _low;
-	   
-	   double _sizeOfBar;
-	   
-	   bool _waitBuy;
-	   bool _waitSell;
+	   double _low;	   
+	   double _sizeOfBar;	   
+	   bool _wait;
    	
    	bool GetBuffers() {
-
-   		if (!IsNewCandle()) {
-   			return ArraySize(_rates) > 0;
-   		}
-   
+   	
+   	   if(_wait) return true;
+   	   	
    		ZeroMemory(_rates);
    		ArraySetAsSeries(_rates, true);
    		ArrayFree(_rates); 
@@ -53,14 +47,14 @@ class ElephantWalk : public Base
 	      _high = _rates[1].high;
 	      _low = _rates[1].low;
 	      
+	      Base::SetInfo("TAM CANDLE "+ (string)_sizeOfBar + "\nMIN "+ (string)_low + " MAX " + (string)_high + "\nWAIT " + (string)_wait + "\nGetIsNewCandle() " + (string)GetIsNewCandle());
+         Base::ShowInfo();
+	      
 	      if(_high - _low  >= _sizeOfBar)
-	      {
-	         return true;
+	      {	      	        
+	         return true;	         
 	      }
-	      
-	      Base::SetInfo("TAM BARRA "+ (string)_sizeOfBar);
-   		Base::ShowInfo();
-	      
+	      	      	      
 	      return false;
 	   
 	   }
@@ -73,35 +67,40 @@ class ElephantWalk : public Base
    	};
    
    	void Execute() {
+   	   
+   	   Base::SetInfo("TAM CANDLE "+ (string)_sizeOfBar + "\nMIN "+ (string)_low + " MAX " + (string)_high + "\nWAIT " + (string)_wait + "\nGetIsNewCandle() " + (string)GetIsNewCandle());
+         Base::ShowInfo();
    	
    	   if(!Base::ExecuteBase()) return;
       		
-   		if(GetBuffers()){
+   		if(GetBuffers()){   	
    		   
-   		   if(_waitBuy || _waitSell || FindElephant()){
+   		   if(_wait || FindElephant()){
+   		   
+   		      _wait = true;
 
-      		   if(_waitBuy || IsCandlePositive(_rates[1])){
-      		      		   
+      		   if(IsCandlePositive(_rates[1])){
+      		         		      		   
       		      double _entrada = _high + GetSpread();
          			double _auxStopGain = NormalizeDouble((_entrada + GetStopGain()), _Digits);
          			double _auxStopLoss = NormalizeDouble((_entrada - GetStopLoss()), _Digits);
               
          			if (GetPrice().last >= _entrada && !HasPositionOpen()) {         
-         				Buy(_entrada, _auxStopLoss, _auxStopGain, getRobotName());  
-         				_waitBuy = false;          
+         			   _wait = false;
+         				Buy(_entrada, _auxStopLoss, _auxStopGain, getRobotName());           				          
          			}        		   
          			
       		   }
       		   
-      		   if(_waitSell || IsCandleNegative(_rates[1])){
-      		   
+      		   if(IsCandleNegative(_rates[1])){
+      		         		   
       		      double _entrada = _low - GetSpread();
          			double _auxStopGain = NormalizeDouble((_entrada - GetStopGain()), _Digits);
          			double _auxStopLoss = NormalizeDouble((_entrada + GetStopLoss()), _Digits);
               
          			if (GetPrice().last <= _entrada && !HasPositionOpen()) {         
+         			   _wait = false;
          				Sell(_entrada, _auxStopLoss, _auxStopGain, getRobotName());     
-         				_waitSell = false;       
          			}
          			
       		   }
