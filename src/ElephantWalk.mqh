@@ -48,7 +48,6 @@ class ElephantWalk : public Base
 	      _low = _rates[1].low;
 	      
 	      Base::SetInfo("TAM CANDLE "+ (string)_sizeOfBar + "\nMIN "+ (string)_low + " MAX " + (string)_high + "\nWAIT " + (string)_wait + "\nGetIsNewCandle() " + (string)GetIsNewCandle());
-         Base::ShowInfo();
 	      
 	      if(_high - _low  >= _sizeOfBar)
 	      {	      	        
@@ -69,7 +68,6 @@ class ElephantWalk : public Base
    	void Execute() {
    	   
    	   Base::SetInfo("TAM CANDLE "+ (string)_sizeOfBar + "\nMIN "+ (string)_low + " MAX " + (string)_high + "\nWAIT " + (string)_wait + "\nGetIsNewCandle() " + (string)GetIsNewCandle());
-         Base::ShowInfo();
    	
    	   if(!Base::ExecuteBase()) return;
       		
