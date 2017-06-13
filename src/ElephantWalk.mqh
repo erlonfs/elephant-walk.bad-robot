@@ -45,10 +45,7 @@ class ElephantWalk : public Base
 	   bool FindElephant(){
 	   	      
 	      _high = _rates[1].high;
-	      _low = _rates[1].low;
-	      
-	      Base::SetInfo("TAM CANDLE "+ (string)_sizeOfBar + "\nMIN "+ (string)_low + " MAX " + (string)_high + "\nWAIT " + (string)_wait + "\nGetIsNewCandle() " + (string)GetIsNewCandle());
-         Base::ShowInfo();
+	      _low = _rates[1].low;	     
 	      
 	      if(_high - _low  >= _sizeOfBar)
 	      {	      	        
@@ -69,7 +66,6 @@ class ElephantWalk : public Base
    	void Execute() {
    	   
    	   Base::SetInfo("TAM CANDLE "+ (string)_sizeOfBar + "\nMIN "+ (string)_low + " MAX " + (string)_high + "\nWAIT " + (string)_wait + "\nGetIsNewCandle() " + (string)GetIsNewCandle());
-         Base::ShowInfo();
    	
    	   if(!Base::ExecuteBase()) return;
       		
@@ -88,7 +84,11 @@ class ElephantWalk : public Base
          			if (GetPrice().last >= _entrada && !HasPositionOpen()) {         
          			   _wait = false;
          				Buy(_entrada, _auxStopLoss, _auxStopGain, getRobotName());           				          
-         			}        		   
+         			}
+         			
+         			if(GetPrice().last < _low - GetSpread()){
+         			   _wait = false;
+         			}
          			
       		   }
       		   
@@ -103,6 +103,10 @@ class ElephantWalk : public Base
          				Sell(_entrada, _auxStopLoss, _auxStopGain, getRobotName());     
          			}
          			
+         			if(GetPrice().last > _high + GetSpread()){
+         			   _wait = false;
+         			}
+         			
       		   }
       		  
             }
@@ -112,7 +116,8 @@ class ElephantWalk : public Base
    	};
    	
       void ExecuteOnTrade(){
-         Base::ExecuteOnTradeBase();
+         Base::ExecuteOnTradeBase();         
+         _wait = false;
       }
       
       void SetSizeOfBar(double value){
