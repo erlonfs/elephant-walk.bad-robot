@@ -64,9 +64,9 @@ class ElephantWalk : public Base
    	};
    
    	void Execute() {
-   	   
-   	   Base::SetInfo("TAM CANDLE "+ (string)_sizeOfBar + "\nMIN "+ (string)_low + " MAX " + (string)_high + "\nWAIT " + (string)_wait + "\nGetIsNewCandle() " + (string)GetIsNewCandle());
    	
+   	   Base::SetInfo("TAM CANDLE "+ (string)(_high - _low) + "/" + (string)_sizeOfBar + "\nMIN "+ (string)_low + " MAX " + (string)_high);
+   	   
    	   if(!Base::ExecuteBase()) return;
       		
    		if(GetBuffers()){   	
