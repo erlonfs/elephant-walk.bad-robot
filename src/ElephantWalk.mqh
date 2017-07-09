@@ -19,6 +19,9 @@ class ElephantWalk : public Base
 	   double _low;	   
 	   double _sizeOfBar;	   
 	   bool _wait;
+	   
+	   bool _match;
+	   datetime _timeMatch;
    	
    	bool GetBuffers() {
    	
@@ -42,19 +45,51 @@ class ElephantWalk : public Base
 	      return rate.open > rate.close;
 	   }  
 	   
-	   bool FindElephant(){
-	   	      
+	   bool FindElephant(){	   
+	   	   	      
+         bool isFound = false;
+         
 	      _high = _rates[1].high;
 	      _low = _rates[1].low;	     
 	      
-	      if(_high - _low  >= _sizeOfBar)
-	      {	      	        
-	         return true;	         
+	      isFound = _high - _low  >= _sizeOfBar;
+	      
+	      if(isFound != _match){
+	         
+	         if(isFound){
+	            _timeMatch = _rates[1].time;
+	            Draw(_low, _timeMatch);
+	         }	         
 	      }
-	      	      	      
-	      return false;
+	      
+	      _match = isFound;
+	      	      	        	    	      	      	    	      
+	      return isFound;
 	   
 	   }
+	   
+	void Draw(double price, datetime time)
+	{	
+		//ClearDraw(time);
+		string objName = "ARROW" + (string)time;
+		ObjectCreate(0, objName, OBJ_ARROW_CHECK, 0, time, price);
+
+		ObjectSetInteger(0, objName, OBJPROP_COLOR, clrGreen);
+		ObjectSetInteger(0, objName, OBJPROP_BORDER_COLOR, clrBlack);
+		ObjectSetInteger(0, objName, OBJPROP_STYLE, STYLE_DASH);
+		ObjectSetInteger(0, objName, OBJPROP_WIDTH, 2);
+		ObjectSetInteger(0, objName, OBJPROP_BACK, false);
+		ObjectSetInteger(0, objName, OBJPROP_FILL, true);
+	}
+
+	void ClearDraw(datetime time) {
+
+		string objName = "ARROW" + (string)time;
+
+		if (ObjectFind(0, objName) != 0) {
+			ObjectDelete(0, objName);
+		}
+	}
    
    public:
       
@@ -65,7 +100,8 @@ class ElephantWalk : public Base
    
    	void Execute() {
    	
-   	   Base::SetInfo("TAM CANDLE "+ (string)(_high - _low) + "/" + (string)_sizeOfBar + "\nMIN "+ (string)_low + " MAX " + (string)_high);
+   	   Base::SetInfo("TAM CANDLE "+ (string)(_high - _low) + "/" + (string)_sizeOfBar + 
+   	                 "\nMIN "+ (string)_low + " MAX " + (string)_high);
    	   
    	   if(!Base::ExecuteBase()) return;
       		
@@ -74,7 +110,7 @@ class ElephantWalk : public Base
    		   if(_wait || FindElephant()){
    		   
    		      _wait = true;
-
+   		      
       		   if(IsCandlePositive(_rates[1])){
       		         		      		   
       		      double _entrada = _high + GetSpread();
@@ -88,6 +124,7 @@ class ElephantWalk : public Base
          			
          			if(GetPrice().last < _low - GetSpread()){
          			   _wait = false;
+         			   ShowMessage("COMPRA CANCELADA!");
          			}
          			
       		   }
@@ -101,10 +138,11 @@ class ElephantWalk : public Base
          			if (GetPrice().last <= _entrada && !HasPositionOpen()) {         
          			   _wait = false;
          				Sell(_entrada, _auxStopLoss, _auxStopGain, getRobotName());     
-         			}
+        			   }
          			
          			if(GetPrice().last > _high + GetSpread()){
          			   _wait = false;
+         			   ShowMessage("VENDA CANCELADA!");
          			}
          			
       		   }
