@@ -72,11 +72,9 @@ class ElephantWalk : public Base
 	{	
 		//ClearDraw(time);
 		string objName = "ARROW" + (string)time;
-		ObjectCreate(0, objName, OBJ_ARROW_CHECK, 0, time, price);
+		ObjectCreate(0, objName, OBJ_ARROW_UP, 0, time, price);
 
-		ObjectSetInteger(0, objName, OBJPROP_COLOR, clrGreen);
-		ObjectSetInteger(0, objName, OBJPROP_BORDER_COLOR, clrBlack);
-		ObjectSetInteger(0, objName, OBJPROP_STYLE, STYLE_DASH);
+		ObjectSetInteger(0, objName, OBJPROP_COLOR, clrMagenta);
 		ObjectSetInteger(0, objName, OBJPROP_WIDTH, 2);
 		ObjectSetInteger(0, objName, OBJPROP_BACK, false);
 		ObjectSetInteger(0, objName, OBJPROP_FILL, true);
