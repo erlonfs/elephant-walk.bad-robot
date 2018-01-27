@@ -49,6 +49,10 @@ class ElephantWalk : public Base
 	   	   	      
          bool isFound = false;
          
+         if(!Base::GetIsNewCandle()){
+            return isFound;
+         }
+         
 	      _high = _rates[1].high;
 	      _low = _rates[1].low;	     
 	      
@@ -104,11 +108,11 @@ class ElephantWalk : public Base
    	   if(!Base::ExecuteBase()) return;
       		
    		if(GetBuffers()){   	
-   		   
+   		      		   
    		   if(_wait || FindElephant()){
    		   
    		      _wait = true;
-   		      
+   		         		     
       		   if(IsCandlePositive(_rates[1])){
       		         		      		   
       		      double _entrada = _high + GetSpread();
@@ -118,12 +122,7 @@ class ElephantWalk : public Base
          			if (GetPrice().last >= _entrada && !HasPositionOpen()) {         
          			   _wait = false;
          				Buy(_entrada, _auxStopLoss, _auxStopGain, getRobotName());           				          
-         			}
-         			
-         			if(GetPrice().last < _low - GetSpread()){
-         			   _wait = false;
-         			   ShowMessage("COMPRA CANCELADA!");
-         			}
+         			}         		
          			
       		   }
       		   
@@ -136,14 +135,23 @@ class ElephantWalk : public Base
          			if (GetPrice().last <= _entrada && !HasPositionOpen()) {         
          			   _wait = false;
          				Sell(_entrada, _auxStopLoss, _auxStopGain, getRobotName());     
-        			   }
-         			
-         			if(GetPrice().last > _high + GetSpread()){
-         			   _wait = false;
-         			   ShowMessage("VENDA CANCELADA!");
-         			}
-         			
-      		   }
+        			   }         		         			
+      		   }  
+      		   
+      		   MqlTick lastPrice = GetPrice();
+   		      
+               if(GetPrice().last < _low - GetSpread()){
+      			   _wait = false;
+      			   ShowMessage("COMPRA CANCELADA!");
+      			   return;
+      			}      			      			
+      			
+      			if(GetPrice().last > _high + GetSpread()){
+      			   _wait = false;
+      			   ShowMessage("VENDA CANCELADA!");
+      			   return;
+      			}   		  
+
       		  
             }
    		   

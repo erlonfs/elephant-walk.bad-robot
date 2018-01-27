@@ -1,2 +1,5 @@
 #Executaveis
 *.ex5
+
+*.mq5 diff=tex
+*.mqh diff=tex
