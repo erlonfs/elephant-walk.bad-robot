@@ -8,9 +8,9 @@
 
 #include <Trade\Trade.mqh>
 #include <Trade\PositionInfo.mqh>
-#include <Framework\Base.mqh>
+#include <BadRobot.Framework\BadRobot.mqh>
 
-class ElephantWalk : public Base
+class ElephantWalk : public BadRobot
 {
    private:
    
@@ -49,7 +49,7 @@ class ElephantWalk : public Base
 	   	   	      
          bool isFound = false;
          
-         if(!Base::GetIsNewCandle()){
+         if(!GetIsNewCandle()){
             return isFound;
          }
          
@@ -102,10 +102,10 @@ class ElephantWalk : public Base
    
    	void Execute() {
    	
-   	   Base::SetInfo("TAM CANDLE "+ (string)(_high - _low) + "/" + (string)_sizeOfBar + 
+   	   BadRobot::SetInfo("TAM CANDLE "+ (string)(_high - _low) + "/" + (string)_sizeOfBar + 
    	                 "\nMIN "+ (string)_low + " MAX " + (string)_high);
    	   
-   	   if(!Base::ExecuteBase()) return;
+   	   if(!BadRobot::ExecuteBase()) return;
       		
    		if(GetBuffers()){   	
    		      		   
@@ -160,7 +160,7 @@ class ElephantWalk : public Base
    	};
    	
       void ExecuteOnTrade(){
-         Base::ExecuteOnTradeBase();         
+         BadRobot::ExecuteOnTradeBase();         
          _wait = false;
       }
       
