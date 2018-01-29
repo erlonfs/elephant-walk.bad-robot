@@ -22,10 +22,40 @@ class ElephantWalk : public BadRobot
 	   
 	   bool _match;
 	   datetime _timeMatch;
+	   
+	   //Indicadores
+   	bool _ativarCruzamentoDeMedias;   	
+   	int _eMALongPeriod;
+   	int _eMALongHandle;
+   	double _eMALongValues[];   	
+   	int _eMAShortPeriod;
+   	int _eMAShortHandle;
+   	double _eMAShortValues[];
    	
    	bool GetBuffers() {
    	
    	   if(_wait) return true;
+   	   
+   	   if (_ativarCruzamentoDeMedias) {
+   	   
+            ZeroMemory(_rates);
+         	ZeroMemory(_eMALongValues);
+      		ZeroMemory(_eMAShortValues);
+      		
+      		ArraySetAsSeries(_rates, true);
+            ArraySetAsSeries(_eMALongValues, true);
+      		ArraySetAsSeries(_eMAShortValues, true);
+
+            ArrayFree(_eMALongValues);
+      		ArrayFree(_eMAShortValues);      		
+      		ArrayFree(_rates);
+      		
+      		int copiedMALongBuffer = CopyBuffer(_eMALongHandle, 0, 0, 2, _eMALongValues);
+		      int copiedMAShortBuffer = CopyBuffer(_eMAShortHandle, 0, 0, 2, _eMAShortValues);
+		      int copiedRates = CopyRates(GetSymbol(), GetPeriod(), 0, 2, _rates);
+		      
+		      return copiedRates > 0 && copiedMALongBuffer > 0 && copiedMAShortBuffer > 0;
+   	   }
    	   	
    		ZeroMemory(_rates);
    		ArraySetAsSeries(_rates, true);
@@ -97,7 +127,14 @@ class ElephantWalk : public BadRobot
       
    	void Load() 
    	{
-         //TODO
+         if(!_ativarCruzamentoDeMedias) return;
+	   
+		   _eMALongHandle = iMA(GetSymbol(), GetPeriod(), _eMALongPeriod, 0, MODE_EMA, PRICE_CLOSE);
+		   _eMAShortHandle = iMA(GetSymbol(), GetPeriod(), _eMAShortPeriod, 0, MODE_EMA, PRICE_CLOSE);
+
+   		if (_eMALongHandle < 0 || _eMAShortHandle < 0) {
+   			Alert("Erro ao criar indicadores: erro ", GetLastError(), "!");
+   		}
    	};
    
    	void Execute() {
@@ -113,7 +150,7 @@ class ElephantWalk : public BadRobot
    		   
    		      _wait = true;
    		         		     
-      		   if(IsCandlePositive(_rates[1])){
+      		   if(IsCandlePositive(_rates[1]) && _eMAShortValues[0] > _eMALongValues[0]){
       		         		      		   
       		      double _entrada = _high + GetSpread();
          			double _auxStopGain = NormalizeDouble((_entrada + GetStopGain()), _Digits);
@@ -126,7 +163,7 @@ class ElephantWalk : public BadRobot
          			
       		   }
       		   
-      		   if(IsCandleNegative(_rates[1])){
+      		   if(IsCandleNegative(_rates[1]) && _eMAShortValues[0] < _eMALongValues[0]){
       		         		   
       		      double _entrada = _low - GetSpread();
          			double _auxStopGain = NormalizeDouble((_entrada - GetStopGain()), _Digits);
@@ -136,9 +173,7 @@ class ElephantWalk : public BadRobot
          			   _wait = false;
          				Sell(_entrada, _auxStopLoss, _auxStopGain, getRobotName());     
         			   }         		         			
-      		   }  
-      		   
-      		   MqlTick lastPrice = GetPrice();
+      		   }
    		      
                if(GetPrice().last < _low - GetSpread()){
       			   _wait = false;
@@ -150,8 +185,7 @@ class ElephantWalk : public BadRobot
       			   _wait = false;
       			   ShowMessage("VENDA CANCELADA!");
       			   return;
-      			}   		  
-
+      			}
       		  
             }
    		   
@@ -166,7 +200,19 @@ class ElephantWalk : public BadRobot
       
       void SetSizeOfBar(double value){
          _sizeOfBar = value;
-      }     
+      }  
+
+   	void SetAtivarCruzamentoDeMedias(int flag) {
+   		_ativarCruzamentoDeMedias = flag;
+   	}
+      
+   	void SetEMALongPeriod(int ema) {
+   		_eMALongPeriod = ema;
+   	};
+   
+   	void SetEMAShortPeriod(int ema) {
+   		_eMAShortPeriod = ema;
+   	};   
    	
 };
 
