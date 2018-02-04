@@ -16,12 +16,12 @@ class ElephantWalk : public BadRobot
    
    	MqlRates _rates[];   	
    	double _high;
-	   double _low;	   
-	   double _sizeOfBar;	   
-	   bool _wait;
-	   
-	   bool _match;
-	   datetime _timeMatch;
+	double _low;	   
+	double _sizeOfBar;	   
+	bool _wait;
+	
+	bool _match;
+	datetime _timeMatch;
 	   
 	   //Indicadores
    	bool _ativarCruzamentoDeMedias;   	
@@ -51,8 +51,8 @@ class ElephantWalk : public BadRobot
       		ArrayFree(_rates);
       		
       		int copiedMALongBuffer = CopyBuffer(_eMALongHandle, 0, 0, 2, _eMALongValues);
-		      int copiedMAShortBuffer = CopyBuffer(_eMAShortHandle, 0, 0, 2, _eMAShortValues);
-		      int copiedRates = CopyRates(GetSymbol(), GetPeriod(), 0, 2, _rates);
+		    int copiedMAShortBuffer = CopyBuffer(_eMAShortHandle, 0, 0, 2, _eMAShortValues);
+		    int copiedRates = CopyRates(GetSymbol(), GetPeriod(), 0, 2, _rates);
 		      
 		      return copiedRates > 0 && copiedMALongBuffer > 0 && copiedMAShortBuffer > 0;
    	   }
@@ -93,6 +93,7 @@ class ElephantWalk : public BadRobot
 	         if(isFound){
 	            _timeMatch = _rates[1].time;
 	            Draw(_low, _timeMatch);
+	            ShowMessage("Barra elefante de " + (string)_sizeOfBar + " encontrado.");
 	         }	         
 	      }
 	      
@@ -159,7 +160,7 @@ class ElephantWalk : public BadRobot
          			if (GetPrice().last >= _entrada && !HasPositionOpen()) {         
          			   _wait = false;
          				Buy(_entrada, _auxStopLoss, _auxStopGain, getRobotName());           				          
-         			}         		
+         			}             		     		
          			
       		   }
       		   
@@ -177,13 +178,13 @@ class ElephantWalk : public BadRobot
    		      
                if(GetPrice().last < _low - GetSpread()){
       			   _wait = false;
-      			   ShowMessage("COMPRA CANCELADA!");
+      			   ShowMessage("Compra Cancelada!");
       			   return;
       			}      			      			
       			
       			if(GetPrice().last > _high + GetSpread()){
       			   _wait = false;
-      			   ShowMessage("VENDA CANCELADA!");
+      			   ShowMessage("Venda Cancelada!");
       			   return;
       			}
       		  
