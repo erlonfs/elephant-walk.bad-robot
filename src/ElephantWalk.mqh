@@ -151,28 +151,24 @@ class ElephantWalk : public BadRobot
    		   
    		      _wait = true;
    		         		     
-      		   if(IsCandlePositive(_rates[1]) && _eMAShortValues[0] > _eMALongValues[0]){
+      		   if(IsCandlePositive(_rates[1]) && (_ativarCruzamentoDeMedias ? _eMAShortValues[0] > _eMALongValues[0] : true)){
       		         		      		   
-      		      double _entrada = _high + GetSpread();
-         			double _auxStopGain = NormalizeDouble((_entrada + GetStopGain()), _Digits);
-         			double _auxStopLoss = NormalizeDouble((_entrada - GetStopLoss()), _Digits);
+      		      double _entrada = _high + GetSpread();         			
               
          			if (GetPrice().last >= _entrada && !HasPositionOpen()) {         
          			   _wait = false;
-         				Buy(_entrada, _auxStopLoss, _auxStopGain, getRobotName());           				          
+         				Buy(_entrada);           				          
          			}             		     		
          			
       		   }
       		   
-      		   if(IsCandleNegative(_rates[1]) && _eMAShortValues[0] < _eMALongValues[0]){
+      		   if(IsCandleNegative(_rates[1]) && (_ativarCruzamentoDeMedias ? _eMAShortValues[0] < _eMALongValues[0] : true)){
       		         		   
       		      double _entrada = _low - GetSpread();
-         			double _auxStopGain = NormalizeDouble((_entrada - GetStopGain()), _Digits);
-         			double _auxStopLoss = NormalizeDouble((_entrada + GetStopLoss()), _Digits);
               
          			if (GetPrice().last <= _entrada && !HasPositionOpen()) {         
          			   _wait = false;
-         				Sell(_entrada, _auxStopLoss, _auxStopGain, getRobotName());     
+         				Sell(_entrada);     
         			   }         		         			
       		   }
    		      
