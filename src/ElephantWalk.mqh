@@ -8,9 +8,9 @@
 
 #include <Trade\Trade.mqh>
 #include <Trade\PositionInfo.mqh>
-#include <BadRobot.Framework\BadRobot.mqh>
+#include <BadRobot.Framework\BadRobotPrompt.mqh>
 
-class ElephantWalk : public BadRobot
+class ElephantWalk : public BadRobotPrompt
 {
    private:
    
@@ -79,7 +79,7 @@ class ElephantWalk : public BadRobot
 	   	   	      
          bool isFound = false;
          
-         if(!GetIsNewCandle()){
+         if(!IsNewCandle()){
             return isFound;
          }
          
@@ -140,10 +140,10 @@ class ElephantWalk : public BadRobot
    
    	void Execute() {
    	
-   	   BadRobot::SetInfo("TAM CANDLE "+ (string)(_high - _low) + "/" + (string)_sizeOfBar + 
+   	   SetInfo("TAM CANDLE "+ (string)(_high - _low) + "/" + (string)_sizeOfBar + 
    	                 "\nMIN "+ (string)_low + " MAX " + (string)_high);
    	   
-   	   if(!BadRobot::ExecuteBase()) return;
+   	   if(!ExecuteBase()) return;
       		
    		if(GetBuffers()){   	
    		      		   
@@ -155,7 +155,7 @@ class ElephantWalk : public BadRobot
       		         		      		   
       		      double _entrada = _high + GetSpread();         			
               
-         			if (GetPrice().last >= _entrada && !HasPositionOpen()) {         
+         			if (GetLastPrice() >= _entrada && !HasPositionOpen()) {         
          			   _wait = false;
          				Buy(_entrada);           				          
          			}             		     		
@@ -166,19 +166,19 @@ class ElephantWalk : public BadRobot
       		         		   
       		      double _entrada = _low - GetSpread();
               
-         			if (GetPrice().last <= _entrada && !HasPositionOpen()) {         
+         			if (GetLastPrice() <= _entrada && !HasPositionOpen()) {         
          			   _wait = false;
          				Sell(_entrada);     
         			   }         		         			
       		   }
    		      
-               if(GetPrice().last < _low - GetSpread()){
+               if(GetLastPrice() < _low - GetSpread()){
       			   _wait = false;
       			   ShowMessage("Compra Cancelada!");
       			   return;
       			}      			      			
       			
-      			if(GetPrice().last > _high + GetSpread()){
+      			if(GetLastPrice() > _high + GetSpread()){
       			   _wait = false;
       			   ShowMessage("Venda Cancelada!");
       			   return;
@@ -191,7 +191,7 @@ class ElephantWalk : public BadRobot
    	};
    	
       void ExecuteOnTrade(){
-         BadRobot::ExecuteOnTradeBase();         
+         ExecuteOnTradeBase();         
          _wait = false;
       }
       
