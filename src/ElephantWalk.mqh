@@ -9,19 +9,20 @@
 #include <Trade\Trade.mqh>
 #include <Trade\PositionInfo.mqh>
 #include <BadRobot.Framework\BadRobotPrompt.mqh>
+#include <BadRobot.Framework\BadRobotUI.mqh>
 
-class ElephantWalk : public BadRobotPrompt
+class ElephantWalk : public BadRobotUI
 {
    private:
    
    	MqlRates _rates[];   	
    	double _high;
-	double _low;	   
-	double _sizeOfBar;	   
-	bool _wait;
+		double _low;	   
+		int _sizeOfBar;	   
+		bool _wait;
 	
-	bool _match;
-	datetime _timeMatch;
+		bool _match;
+		datetime _timeMatch;
 	   
 	   //Indicadores
    	bool _ativarCruzamentoDeMedias;   	
@@ -86,14 +87,16 @@ class ElephantWalk : public BadRobotPrompt
 	      _high = _rates[1].high;
 	      _low = _rates[1].low;	     
 	      
-	      isFound = _high - _low  >= _sizeOfBar;
+	      isFound = _high - _low  >= ToPoints(_sizeOfBar);
+	      
+	      bool isCandlePositive = IsCandlePositive(_rates[1]);
 	      
 	      if(isFound != _match){
 	         
 	         if(isFound){
 	            _timeMatch = _rates[1].time;
-	            Draw(_low, _timeMatch);
-	            ShowMessage("Barra elefante de " + (string)_sizeOfBar + " encontrado.");
+	            Draw(isCandlePositive ? _high : _low, _timeMatch, isCandlePositive);
+	            ShowMessage("Barra elefante de " + DoubleToString(ToPoints(_sizeOfBar), _Digits) + " encontrado.");
 	         }	         
 	      }
 	      
@@ -103,16 +106,17 @@ class ElephantWalk : public BadRobotPrompt
 	   
 	   }
 	   
-	void Draw(double price, datetime time)
+	void Draw(double price, datetime time, bool isCandlePositive)
 	{	
 		//ClearDraw(time);
-		string objName = "ARROW" + (string)time;
+		string objName = "ARROW" + DoubleToString(price) + TimeToString(time);
 		ObjectCreate(0, objName, OBJ_ARROW_UP, 0, time, price);
 
-		ObjectSetInteger(0, objName, OBJPROP_COLOR, clrMagenta);
+		ObjectSetInteger(0, objName, OBJPROP_COLOR, isCandlePositive ? clrGreen : clrRed);
 		ObjectSetInteger(0, objName, OBJPROP_WIDTH, 2);
 		ObjectSetInteger(0, objName, OBJPROP_BACK, false);
 		ObjectSetInteger(0, objName, OBJPROP_FILL, true);
+		ObjectSetInteger(0, objName, OBJPROP_BGCOLOR, isCandlePositive ? clrGreen : clrRed);
 	}
 
 	void ClearDraw(datetime time) {
@@ -128,6 +132,8 @@ class ElephantWalk : public BadRobotPrompt
       
    	void Load() 
    	{
+   		LoadBase();
+   	
          if(!_ativarCruzamentoDeMedias) return;
 	   
 		   _eMALongHandle = iMA(GetSymbol(), GetPeriod(), _eMALongPeriod, 0, MODE_EMA, PRICE_CLOSE);
@@ -137,10 +143,15 @@ class ElephantWalk : public BadRobotPrompt
    			Alert("Erro ao criar indicadores: erro ", GetLastError(), "!");
    		}
    	};
+   	
+      void UnLoad(const int reason)
+   	{
+         UnLoadBase(reason);
+   	};   	
    
    	void Execute() {
    	
-   	   SetInfo("TAM CANDLE "+ (string)(_high - _low) + "/" + (string)_sizeOfBar + 
+   	   SetInfo("TAM CANDLE "+ (string)(_high - _low) + "/" + (string)ToPoints(_sizeOfBar) + 
    	                 "\nMIN "+ (string)_low + " MAX " + (string)_high);
    	   
    	   if(!ExecuteBase()) return;
@@ -153,7 +164,7 @@ class ElephantWalk : public BadRobotPrompt
    		         		     
       		   if(IsCandlePositive(_rates[1]) && (_ativarCruzamentoDeMedias ? _eMAShortValues[0] > _eMALongValues[0] : true)){
       		         		      		   
-      		      double _entrada = _high + GetSpread();         			
+      		      double _entrada = _high + ToPoints(GetSpread());         			
               
          			if (GetLastPrice() >= _entrada && !HasPositionOpen()) {         
          			   _wait = false;
@@ -164,7 +175,7 @@ class ElephantWalk : public BadRobotPrompt
       		   
       		   if(IsCandleNegative(_rates[1]) && (_ativarCruzamentoDeMedias ? _eMAShortValues[0] < _eMALongValues[0] : true)){
       		         		   
-      		      double _entrada = _low - GetSpread();
+      		      double _entrada = _low - ToPoints(GetSpread());
               
          			if (GetLastPrice() <= _entrada && !HasPositionOpen()) {         
          			   _wait = false;
@@ -172,13 +183,13 @@ class ElephantWalk : public BadRobotPrompt
         			   }         		         			
       		   }
    		      
-               if(GetLastPrice() < _low - GetSpread()){
+               if(GetLastPrice() < _low - ToPoints(GetSpread())){
       			   _wait = false;
       			   ShowMessage("Compra Cancelada!");
       			   return;
       			}      			      			
       			
-      			if(GetLastPrice() > _high + GetSpread()){
+      			if(GetLastPrice() > _high + ToPoints(GetSpread())){
       			   _wait = false;
       			   ShowMessage("Venda Cancelada!");
       			   return;
@@ -195,7 +206,12 @@ class ElephantWalk : public BadRobotPrompt
          _wait = false;
       }
       
-      void SetSizeOfBar(double value){
+      void ChartEvent(const int id, const long& lparam, const double& dparam, const string& sparam)
+      {      	
+			ChartEventBase(id, lparam, dparam, sparam);      	
+      };      
+      
+      void SetSizeOfBar(int value){
          _sizeOfBar = value;
       }  
 
