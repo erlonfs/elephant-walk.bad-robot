@@ -9,9 +9,8 @@
 #include <Trade\Trade.mqh>
 #include <Trade\PositionInfo.mqh>
 #include <BadRobot.Framework\BadRobotPrompt.mqh>
-#include <BadRobot.Framework\BadRobotUI.mqh>
 
-class ElephantWalk : public BadRobotUI
+class ElephantWalk : public BadRobotPrompt
 {
    private:
    
@@ -37,8 +36,8 @@ class ElephantWalk : public BadRobotUI
    	
    	   if(_wait) return true;
    	   
-   	   if (_ativarCruzamentoDeMedias) {
-   	   
+   	   if (_ativarCruzamentoDeMedias) 
+   	   {   	   
             ZeroMemory(_rates);
          	ZeroMemory(_eMALongValues);
       		ZeroMemory(_eMAShortValues);
@@ -52,10 +51,11 @@ class ElephantWalk : public BadRobotUI
       		ArrayFree(_rates);
       		
       		int copiedMALongBuffer = CopyBuffer(_eMALongHandle, 0, 0, 2, _eMALongValues);
-		    int copiedMAShortBuffer = CopyBuffer(_eMAShortHandle, 0, 0, 2, _eMAShortValues);
-		    int copiedRates = CopyRates(GetSymbol(), GetPeriod(), 0, 2, _rates);
+		      int copiedMAShortBuffer = CopyBuffer(_eMAShortHandle, 0, 0, 2, _eMAShortValues);
+		      int copiedRates = CopyRates(GetSymbol(), GetPeriod(), 0, 2, _rates);
 		      
 		      return copiedRates > 0 && copiedMALongBuffer > 0 && copiedMAShortBuffer > 0;
+		      
    	   }
    	   	
    		ZeroMemory(_rates);
@@ -80,20 +80,22 @@ class ElephantWalk : public BadRobotUI
 	   	   	      
          bool isFound = false;
          
-         if(!IsNewCandle()){
+         if(!IsNewCandle())
+         {
             return isFound;
          }
          
 	      _high = _rates[1].high;
 	      _low = _rates[1].low;	     
 	      
-	      isFound = _high - _low  >= ToPoints(_sizeOfBar);
+	      isFound = ToPoints(_high - _low)  >= ToPoints(_sizeOfBar);
 	      
 	      bool isCandlePositive = IsCandlePositive(_rates[1]);
 	      
 	      if(isFound != _match){
 	         
-	         if(isFound){
+	         if(isFound)
+	         {
 	            _timeMatch = _rates[1].time;
 	            Draw(isCandlePositive ? _high : _low, _timeMatch, isCandlePositive);
 	            ShowMessage("Barra elefante de " + DoubleToString(ToPoints(_sizeOfBar), _Digits) + " encontrado.");
@@ -151,8 +153,8 @@ class ElephantWalk : public BadRobotUI
    
    	void Execute() {
    	
-   	   SetInfo("TAM CANDLE "+ (string)(_high - _low) + "/" + (string)ToPoints(_sizeOfBar) + 
-   	                 "\nMIN "+ (string)_low + " MAX " + (string)_high);
+   	   SetInfo("TAM CANDLE "+ DoubleToString(_high - _low, _Digits) + "/" + DoubleToString(ToPoints(_sizeOfBar), _Digits) + 
+   	                 "\nMIN "+ DoubleToString(_low, _Digits) + " MAX " + DoubleToString(_high, _Digits));
    	   
    	   if(!ExecuteBase()) return;
       		
@@ -201,7 +203,8 @@ class ElephantWalk : public BadRobotUI
    		
    	};
    	
-      void ExecuteOnTrade(){
+      void ExecuteOnTrade()
+      {
          ExecuteOnTradeBase();         
          _wait = false;
       }
