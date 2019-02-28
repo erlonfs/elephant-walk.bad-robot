@@ -88,7 +88,7 @@ class ElephantWalk : public BadRobotPrompt
 	      _high = _rates[1].high;
 	      _low = _rates[1].low;	     
 	      
-	      isFound = ToPoints(_high - _low)  >= ToPoints(_sizeOfBar);
+	      isFound = NormalizeDouble((_high - _low), _Digits)  >= ToPoints(_sizeOfBar);
 	      
 	      bool isCandlePositive = IsCandlePositive(_rates[1]);
 	      
@@ -132,11 +132,9 @@ class ElephantWalk : public BadRobotPrompt
    
    public:
       
-   	void Load() 
-   	{
-   		LoadBase();
-   	
-         if(!_ativarCruzamentoDeMedias) return;
+   	int OnInitHandler() 
+   	{   	   	
+         if(!_ativarCruzamentoDeMedias) return INIT_SUCCEEDED;
 	   
 		   _eMALongHandle = iMA(GetSymbol(), GetPeriod(), _eMALongPeriod, 0, MODE_EMA, PRICE_CLOSE);
 		   _eMAShortHandle = iMA(GetSymbol(), GetPeriod(), _eMAShortPeriod, 0, MODE_EMA, PRICE_CLOSE);
@@ -144,20 +142,16 @@ class ElephantWalk : public BadRobotPrompt
    		if (_eMALongHandle < 0 || _eMAShortHandle < 0) {
    			Alert("Erro ao criar indicadores: erro ", GetLastError(), "!");
    		}
+   		
+   		return INIT_SUCCEEDED;
+   		
    	};
-   	
-      void UnLoad(const int reason)
-   	{
-         UnLoadBase(reason);
-   	};   	
-   
-   	void Execute() {
+   	 	   
+   	void OnTickHandler() {
    	
    	   SetInfo("TAM CANDLE "+ DoubleToString(_high - _low, _Digits) + "/" + DoubleToString(ToPoints(_sizeOfBar), _Digits) + 
    	                 "\nMIN "+ DoubleToString(_low, _Digits) + " MAX " + DoubleToString(_high, _Digits));
-   	   
-   	   if(!ExecuteBase()) return;
-      		
+   	   	
    		if(GetBuffers()){   	
    		      		   
    		   if(_wait || FindElephant()){
@@ -203,17 +197,11 @@ class ElephantWalk : public BadRobotPrompt
    		
    	};
    	
-      void ExecuteOnTrade()
-      {
-         ExecuteOnTradeBase();         
+      void OnTradeHandler()
+      {      
          _wait = false;
       }
-      
-      void ChartEvent(const int id, const long& lparam, const double& dparam, const string& sparam)
-      {      	
-			ChartEventBase(id, lparam, dparam, sparam);      	
-      };      
-      
+                 
       void SetSizeOfBar(int value){
          _sizeOfBar = value;
       }  
