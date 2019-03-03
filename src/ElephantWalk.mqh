@@ -23,41 +23,11 @@ class ElephantWalk : public BadRobotPrompt
 		bool _match;
 		datetime _timeMatch;
 	   
-	   //Indicadores
-   	bool _ativarCruzamentoDeMedias;   	
-   	int _eMALongPeriod;
-   	int _eMALongHandle;
-   	double _eMALongValues[];   	
-   	int _eMAShortPeriod;
-   	int _eMAShortHandle;
-   	double _eMAShortValues[];
    	
    	bool GetBuffers() {
    	
    	   if(_wait) return true;
-   	   
-   	   if (_ativarCruzamentoDeMedias) 
-   	   {   	   
-            ZeroMemory(_rates);
-         	ZeroMemory(_eMALongValues);
-      		ZeroMemory(_eMAShortValues);
-      		
-      		ArraySetAsSeries(_rates, true);
-            ArraySetAsSeries(_eMALongValues, true);
-      		ArraySetAsSeries(_eMAShortValues, true);
-
-            ArrayFree(_eMALongValues);
-      		ArrayFree(_eMAShortValues);      		
-      		ArrayFree(_rates);
-      		
-      		int copiedMALongBuffer = CopyBuffer(_eMALongHandle, 0, 0, 2, _eMALongValues);
-		      int copiedMAShortBuffer = CopyBuffer(_eMAShortHandle, 0, 0, 2, _eMAShortValues);
-		      int copiedRates = CopyRates(GetSymbol(), GetPeriod(), 0, 2, _rates);
-		      
-		      return copiedRates > 0 && copiedMALongBuffer > 0 && copiedMAShortBuffer > 0;
-		      
-   	   }
-   	   	
+   	      	   	
    		ZeroMemory(_rates);
    		ArraySetAsSeries(_rates, true);
    		ArrayFree(_rates); 
@@ -131,22 +101,7 @@ class ElephantWalk : public BadRobotPrompt
 	}
    
    public:
-      
-   	int OnInitHandler() 
-   	{   	   	
-         if(!_ativarCruzamentoDeMedias) return INIT_SUCCEEDED;
-	   
-		   _eMALongHandle = iMA(GetSymbol(), GetPeriod(), _eMALongPeriod, 0, MODE_EMA, PRICE_CLOSE);
-		   _eMAShortHandle = iMA(GetSymbol(), GetPeriod(), _eMAShortPeriod, 0, MODE_EMA, PRICE_CLOSE);
-
-   		if (_eMALongHandle < 0 || _eMAShortHandle < 0) {
-   			Alert("Erro ao criar indicadores: erro ", GetLastError(), "!");
-   		}
-   		
-   		return INIT_SUCCEEDED;
-   		
-   	};
-   	 	   
+         	 	   
    	void OnTickHandler() {
    	
    	   SetInfo("TAM CANDLE "+ DoubleToString(_high - _low, _Digits) + "/" + DoubleToString(ToPoints(_sizeOfBar), _Digits) + 
@@ -158,7 +113,7 @@ class ElephantWalk : public BadRobotPrompt
    		   
    		      _wait = true;
    		         		     
-      		   if(IsCandlePositive(_rates[1]) && (_ativarCruzamentoDeMedias ? _eMAShortValues[0] > _eMALongValues[0] : true)){
+      		   if(IsCandlePositive(_rates[1])){
       		         		      		   
       		      double _entrada = _high + ToPoints(GetSpread());         			
               
@@ -169,7 +124,7 @@ class ElephantWalk : public BadRobotPrompt
          			
       		   }
       		   
-      		   if(IsCandleNegative(_rates[1]) && (_ativarCruzamentoDeMedias ? _eMAShortValues[0] < _eMALongValues[0] : true)){
+      		   if(IsCandleNegative(_rates[1])){
       		         		   
       		      double _entrada = _low - ToPoints(GetSpread());
               
@@ -204,19 +159,7 @@ class ElephantWalk : public BadRobotPrompt
                  
       void SetSizeOfBar(int value){
          _sizeOfBar = value;
-      }  
-
-   	void SetAtivarCruzamentoDeMedias(int flag) {
-   		_ativarCruzamentoDeMedias = flag;
-   	}
-      
-   	void SetEMALongPeriod(int ema) {
-   		_eMALongPeriod = ema;
-   	};
-   
-   	void SetEMAShortPeriod(int ema) {
-   		_eMAShortPeriod = ema;
-   	};   
+      } 
    	
 };
 
